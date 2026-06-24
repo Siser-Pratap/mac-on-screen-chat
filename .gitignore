@@ -1,0 +1,15 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# macOS
+.DS_Store
+
+# Xcode (if/when we generate a project later)
+*.xcodeproj/xcuserdata/
+DerivedData/
+
+# Secrets — never commit API keys
+*.env
+secrets.json
