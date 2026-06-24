@@ -54,6 +54,25 @@ struct ContentView: View {
 
             Spacer()
 
+            Menu {
+                ForEach(ModelOption.all) { option in
+                    Button {
+                        vm.selectedModel = option
+                    } label: {
+                        if option.id == vm.selectedModel.id {
+                            Label(option.label, systemImage: "checkmark")
+                        } else {
+                            Text(option.label)
+                        }
+                    }
+                }
+            } label: {
+                Image(systemName: "cpu")
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help("Model: \(vm.selectedModel.label)")
+
             Button {
                 vm.newChat()
                 inputFocused = true

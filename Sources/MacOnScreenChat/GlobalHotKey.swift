@@ -25,13 +25,17 @@ final class GlobalHotKey {
             GetApplicationEventTarget(),
             { _, _, userData -> OSStatus in
                 guard let userData else { return noErr }
+                Log.write("[hotkey] ⌘⇧Space pressed")
                 let me = Unmanaged<GlobalHotKey>.fromOpaque(userData).takeUnretainedValue()
                 me.action()
                 return noErr
             },
             1, &eventType, selfPtr, &eventHandler
         )
-        guard installStatus == noErr else { return nil }
+        guard installStatus == noErr else {
+            Log.write("[hotkey] InstallEventHandler failed: \(installStatus)")
+            return nil
+        }
 
         // 'MOSC' signature so this hotkey is identifiable.
         let hotKeyID = EventHotKeyID(signature: OSType(0x4D4F5343), id: 1)
@@ -39,7 +43,12 @@ final class GlobalHotKey {
             keyCode, modifiers, hotKeyID,
             GetApplicationEventTarget(), 0, &hotKeyRef
         )
-        guard registerStatus == noErr else { return nil }
+        guard registerStatus == noErr else {
+            // -9878 (eventHotKeyExistsErr) means another app already owns the combo.
+            Log.write("[hotkey] RegisterEventHotKey failed: \(registerStatus)")
+            return nil
+        }
+        Log.write("[hotkey] registered ⌘⇧Space OK")
     }
 
     deinit {

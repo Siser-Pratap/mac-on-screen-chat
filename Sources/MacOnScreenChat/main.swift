@@ -1,5 +1,15 @@
 import AppKit
 
+// Make AppKit re-raise (crash on) exceptions it would otherwise swallow,
+// so we get the actual reason instead of a silent half-launch.
+UserDefaults.standard.register(defaults: ["NSApplicationCrashOnExceptions": true])
+
+// Surface any AppKit-swallowed Obj-C exception with full details.
+NSSetUncaughtExceptionHandler { exception in
+    Log.write("[uncaught] \(exception.name.rawValue): \(exception.reason ?? "")\n" +
+              exception.callStackSymbols.joined(separator: "\n"))
+}
+
 // Headless data-layer check; skips the GUI.
 if CommandLine.arguments.contains("--selftest") {
     SelfTest.run()

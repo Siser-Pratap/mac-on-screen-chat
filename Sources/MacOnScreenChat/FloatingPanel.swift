@@ -15,8 +15,10 @@ final class FloatingPanel: NSPanel {
         )
 
         // Float over normal windows AND over other apps' fullscreen spaces.
+        // NOTE: .canJoinAllSpaces and .moveToActiveSpace are mutually exclusive —
+        // combining them makes setCollectionBehavior throw. Keep only the former.
         level = .floating
-        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .moveToActiveSpace]
+        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
 
         isFloatingPanel = true
         hidesOnDeactivate = false          // stay put when another app is focused

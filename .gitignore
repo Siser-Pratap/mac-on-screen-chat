@@ -11,5 +11,10 @@ Package.resolved
 DerivedData/
 
 # Secrets — never commit API keys
+.env
 *.env
+!.env.example
 secrets.json
+
+# Built app bundle
+MacOnScreenChat.app/

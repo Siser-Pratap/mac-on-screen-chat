@@ -22,7 +22,8 @@ skills for outreach, replies, and rewriting.
     reply options (warm / concise / formal).
   - **Tone rewriter** — paste your draft → rewritten in a friendlier tone.
   - Skills are stored in SQLite and **editable** in-app (picker → "Edit …").
-- **Local & private** — talks to Ollama on `localhost`; nothing leaves your Mac.
+- **Switchable models** — pick from local Ollama models or Google Gemini via the
+  `cpu` menu in the header. Local is private/offline; Gemini needs an API key.
 - **Persistent** — your conversation and skills survive a restart.
 - **Menu-bar icon** — toggle or quit (the app has no Dock icon by design).
 - **Copy** — hover a reply to copy it.
@@ -38,12 +39,26 @@ skills for outreach, replies, and rewriting.
   Any chat model works — change the default in
   [`OllamaClient.swift`](Sources/MacOnScreenChat/OllamaClient.swift).
 
-## Run
+## Gemini (optional)
+
+To use Gemini models, add your key to a local `.env` (gitignored, never committed):
 
 ```sh
-swift run            # build + launch
-# or
-swift build && .build/debug/MacOnScreenChat
+cp .env.example .env
+# edit .env and set GEMINI_API_KEY=...
+./build-app.sh           # copies .env into the app's support folder
+```
+
+The key is read at runtime from `.env` / the app-support copy — it is **never**
+bundled into the `.app` or committed. Local Ollama models need no key.
+
+## Run
+
+GUI apps must run as a bundle (a bare `swift run` won't show a window):
+
+```sh
+./build-app.sh           # builds MacOnScreenChat.app
+open MacOnScreenChat.app  # launch
 ```
 
 Headless data-layer check (no GUI):
