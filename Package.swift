@@ -6,9 +6,15 @@ let package = Package(
     platforms: [
         .macOS(.v13)
     ],
+    dependencies: [
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.0.0")
+    ],
     targets: [
         .executableTarget(
             name: "MacOnScreenChat",
+            dependencies: [
+                .product(name: "GRDB", package: "GRDB.swift")
+            ],
             path: "Sources/MacOnScreenChat"
         )
     ]

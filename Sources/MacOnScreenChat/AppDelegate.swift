@@ -4,6 +4,7 @@ import Carbon.HIToolbox
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panelController: PanelController?
     private var hotKey: GlobalHotKey?
+    private var menuBar: MenuBarController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let controller = PanelController()
@@ -14,6 +15,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             keyCode: UInt32(kVK_Space),
             modifiers: UInt32(cmdKey | shiftKey)
         ) { [weak controller] in
+            controller?.toggle()
+        }
+
+        // Menu-bar icon: the only persistent way to quit / toggle (no Dock icon).
+        menuBar = MenuBarController { [weak controller] in
             controller?.toggle()
         }
 
