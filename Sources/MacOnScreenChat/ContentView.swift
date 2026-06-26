@@ -148,13 +148,7 @@ struct ContentView: View {
 
     private var inputBar: some View {
         HStack(alignment: .bottom, spacing: 8) {
-            TextField(selectedSkill.inputHint, text: $vm.input, axis: .vertical)
-                .textFieldStyle(.plain)
-                .lineLimit(1...6)
-                .focused($inputFocused)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+            inputField
 
             Button {
                 vm.send(systemPrompt: selectedSkill.systemPrompt)
@@ -168,5 +162,27 @@ struct ContentView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
+    }
+
+    /// The text input. Plain Return sends; Shift+Return inserts a newline.
+    @ViewBuilder
+    private var inputField: some View {
+        let field = TextField(selectedSkill.inputHint, text: $vm.input, axis: .vertical)
+            .textFieldStyle(.plain)
+            .lineLimit(1...6)
+            .focused($inputFocused)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+
+        if #available(macOS 14.0, *) {
+            field.onKeyPress(keys: [.return], phases: .down) { press in
+                guard !press.modifiers.contains(.shift) else { return .ignored }
+                if vm.canSend { vm.send(systemPrompt: selectedSkill.systemPrompt) }
+                return .handled
+            }
+        } else {
+            field
+        }
     }
 }

@@ -5,6 +5,7 @@ struct MessageBubble: View {
     let message: ChatMessage
     let isStreaming: Bool
     @State private var hovering = false
+    @State private var copied = false
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 6) {
@@ -15,7 +16,7 @@ struct MessageBubble: View {
             // Copy button for assistant replies, revealed on hover.
             if message.role == .assistant {
                 copyButton
-                    .opacity(hovering && !message.text.isEmpty ? 1 : 0)
+                    .opacity(message.text.isEmpty ? 0 : (hovering || copied ? 1 : 0.35))
                 Spacer(minLength: 36)
             }
         }
@@ -41,11 +42,18 @@ struct MessageBubble: View {
         Button {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(message.text, forType: .string)
+            withAnimation(.easeOut(duration: 0.15)) { copied = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                withAnimation(.easeOut(duration: 0.2)) { copied = false }
+            }
         } label: {
-            Image(systemName: "doc.on.doc").font(.caption2)
+            Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                .font(.caption2)
+                .frame(width: 20, height: 20)
+                .contentShape(Rectangle())
         }
-        .buttonStyle(.borderless)
-        .foregroundStyle(.secondary)
+        .buttonStyle(.plain)
+        .foregroundStyle(copied ? Color.green : .secondary)
         .help("Copy reply")
     }
 
