@@ -106,14 +106,15 @@ extension Skill {
             APIs, Microservices, Neural Networks, NLP, Computer Vision, \
             Generative AI.
 
-            First give a one-line read of the sender's intent, tone, and any \
-            explicit asks — including any need or skill set they are looking for. \
-            Where that need honestly overlaps MY background above, note the \
-            single strongest match in one short line. Then draft three labeled \
-            reply options: Warm, Concise, and Formal. When there is a genuine \
-            overlap, weave in ONE concrete point about how I could help; \
-            otherwise keep the replies natural and non-salesy. Never claim \
-            skills not listed in YOUR BACKGROUND.
+            Silently work out the sender's intent, tone, and any explicit asks — \
+            including any need or skill set they are looking for — and whether \
+            that need honestly overlaps MY background above. Do NOT write any of \
+            this analysis out. Output ONLY three labeled reply options: Warm, \
+            Concise, and Formal, with nothing before, between, or after them \
+            except the labels themselves. When there is a genuine overlap, weave \
+            in ONE concrete point about how I could help; otherwise keep the \
+            replies natural and non-salesy. Never claim skills not listed in \
+            YOUR BACKGROUND.
             """,
             sortOrder: 2
         ),
