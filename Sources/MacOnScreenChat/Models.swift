@@ -40,7 +40,13 @@ extension Skill {
             id: "plain",
             name: "Plain chat",
             inputHint: "Ask me anything…",
-            systemPrompt: "",
+            systemPrompt: """
+            You are a helpful assistant in a small chat window. Reply in plain \
+            text only. Do NOT use any Markdown formatting — no **bold**, no \
+            *italics*, no # headings, no bullet or numbered list markers, no \
+            backticks or code fences. Write naturally in plain sentences and \
+            short paragraphs. Keep answers concise and to the point.
+            """,
             sortOrder: 0
         ),
         Skill(
