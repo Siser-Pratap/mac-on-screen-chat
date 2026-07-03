@@ -49,6 +49,15 @@ final class AppDatabase: Sendable {
                 t.column("sortOrder", .integer).notNull()
             }
         }
+        // The "Dating reply" skill shipped after first launch, so the empty-table
+        // auto-seed won't add it for existing installs. Insert it here, but only
+        // if the user hasn't already created a skill with this id.
+        migrator.registerMigration("v3.seedDatingSkill") { db in
+            guard let dating = Skill.defaults.first(where: { $0.id == "dating" }),
+                  try Skill.filter(key: dating.id).fetchCount(db) == 0
+            else { return }
+            try dating.insert(db)
+        }
         return migrator
     }
 
