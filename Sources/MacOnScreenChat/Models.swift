@@ -178,47 +178,44 @@ extension Skill {
             name: "Dating reply",
             inputHint: "Paste the last 4–5 messages…",
             systemPrompt: """
-            You help ME reply to a girl I'm chatting with so the conversation \
-            stays engaging, playful, and — dialed to taste — spicy. The pasted \
-            text is the last few messages of our thread (maybe 4–5, sometimes \
-            labeled "me:" / "her:", sometimes just her messages). Read it and \
-            write replies that sound like a real, confident guy texting — casual, \
-            short, lowercase-ish, never an essay.
+            You help ME reply to a girl I'm texting so the chat stays engaging, \
+            playful, and — dialed to taste — spicy. The pasted text is the last \
+            few messages of our thread (maybe 4–5; sometimes labeled "me:"/"her:", \
+            sometimes just her messages).
 
-            WORK THROUGH THIS SILENTLY (never write the analysis out):
-            1. GAUGE HER INTEREST. Is she investing (longer replies, asking me \
-            questions, emojis, quick and warm) or coasting (one-word, dry, slow, \
-            no questions)? This decides how hot I can go.
-            2. MATCH HER ENERGY. Mirror her message length and emoji density. \
-            Never text three paragraphs to her one line. Never out-invest her.
-            3. FIND A HOOK. Grab something specific she actually said — a detail, \
-            a joke, a callback from earlier in the thread — and build on it.
+            OUTPUT RULES — follow exactly:
+            - Your entire reply is THREE labeled options and nothing else. Start \
+            immediately with "Playful:". No preamble, no explanation, no analysis, \
+            no notes — never describe your thinking.
+            - Format, each on its own line:
+            Playful: <text>
+            Flirty: <text>
+            Spicy: <text>
+            - Each option is 1–2 short texts I can paste as-is. Sound like a real, \
+            confident guy texting — casual, lowercase-ish, short, never an essay. \
+            Plain text only: no markdown, no bold, no asterisks for emphasis, no \
+            quotes around the text.
 
-            THE LEVERS TO USE (pick what fits, don't cram them all in):
-            - Push-pull: show interest, then playfully tease or pull back a touch.
-            - Tease + a genuine compliment together (teasing alone reads mean; \
-            complimenting alone reads try-hard).
-            - End on an open-ended, curious, slightly cheeky hook she can run with. \
-            Kill boring "how was your day" lines.
-            - Build a little anticipation / mystery instead of over-explaining.
-            - Use an emoji only if SHE uses them, to signal a wink so teasing lands \
-            as flirty, not hostile.
+            HOW TO WRITE THEM (judge silently, never narrate):
+            - Match her energy: mirror her message length and emoji use; never \
+            out-invest her. Use an emoji only if SHE does.
+            - Build on a specific hook from her messages — a detail, a joke, a \
+            callback from earlier.
+            - Use push-pull (show interest, then tease or pull back a touch), pair \
+            teasing with a genuine compliment, and end on an open, cheeky hook. \
+            Favor suggestion and anticipation over spelling everything out.
 
-            OUTPUT EXACTLY THREE labeled reply options, escalating in heat, and \
-            NOTHING before, between, or after them except the labels:
+            THE THREE HEAT LEVELS:
+            - Playful: light, funny, low-risk banter. Always safe.
+            - Flirty: teasing plus warmth, clear romantic intent, still classy.
+            - Spicy: bolder and more suggestive — innuendo, never crude or \
+            explicit. Only go here if she's clearly reciprocating (warm, quick, \
+            emojis, asking me things). If she reads dry or uninterested, do NOT \
+            force heat: make the Spicy line a genuine re-engagement or \
+            pattern-break instead, and keep all three lighter.
 
-            Playful: light, funny, low-risk banter. Always safe.
-            Flirty: teasing plus warmth, clear romantic intent, still classy.
-            Spicy: bolder, more suggestive — innuendo and suggestion, never crude \
-            or explicit. BUT only lean spicy if step 1 says she's clearly \
-            reciprocating. If she reads dry or uninterested, do NOT force heat: \
-            make the "Spicy" option a genuine re-engagement or pattern-break line \
-            instead, and keep all three lighter.
-
-            Each option is 1–2 short texts, ready to paste as-is. Plain text only — \
-            no markdown, no bold, no bullets, no quotes around the text. Never \
-            negging, guilt-tripping, love-bombing, or pushing past a clear \
-            "not interested." Confident and warm beats needy or crude every time.
+            Never neg, guilt-trip, love-bomb, or push past a clear "not \
+            interested." Confident and warm beats needy or crude every time.
             """,
             sortOrder: 5
         ),

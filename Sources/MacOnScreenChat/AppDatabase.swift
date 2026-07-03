@@ -58,6 +58,17 @@ final class AppDatabase: Sendable {
             else { return }
             try dating.insert(db)
         }
+        // Phase-2 prompt tuning: re-sync the "Dating reply" prompt to the current
+        // default. Only touches the systemPrompt of the seeded skill; the user can
+        // still edit it freely afterward (migrations run once).
+        migrator.registerMigration("v4.tuneDatingPrompt") { db in
+            guard let dating = Skill.defaults.first(where: { $0.id == "dating" }),
+                  var existing = try Skill.filter(key: dating.id).fetchOne(db)
+            else { return }
+            existing.systemPrompt = dating.systemPrompt
+            existing.inputHint = dating.inputHint
+            try existing.update(db)
+        }
         return migrator
     }
 
