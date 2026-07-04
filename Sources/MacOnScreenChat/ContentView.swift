@@ -5,19 +5,28 @@ struct ContentView: View {
     @StateObject private var skillStore = SkillStore()
     @State private var selectedSkill: Skill = .fallback
     @State private var editingSkill: Skill?
+    @State private var editingStyle = false
     @AppStorage("datingHeat") private var datingHeatRaw = DatingHeat.auto.rawValue
+    @AppStorage("datingStyle") private var datingStyle = ""
     @FocusState private var inputFocused: Bool
 
     private var datingHeat: DatingHeat { DatingHeat(rawValue: datingHeatRaw) ?? .auto }
 
-    /// Whether the heat dial applies to the current skill.
+    /// Whether the dating-only controls (heat dial, "My style") apply to the
+    /// current skill.
     private var showsHeatDial: Bool { selectedSkill.id == DatingHeat.skillID }
 
-    /// The system prompt actually sent: the skill's prompt, plus the dating heat
-    /// calibration when that skill is selected.
+    /// The system prompt actually sent: the skill's prompt, plus — for the dating
+    /// skill — my texting-style block and the heat calibration.
     private var effectivePrompt: String {
-        showsHeatDial ? selectedSkill.systemPrompt + datingHeat.promptDirective
-                      : selectedSkill.systemPrompt
+        guard showsHeatDial else { return selectedSkill.systemPrompt }
+        var prompt = selectedSkill.systemPrompt
+        let style = datingStyle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !style.isEmpty {
+            prompt += "\n\nMY TEXTING STYLE (write all three options in THIS voice — my humor, slang, and message length):\n\(style)"
+        }
+        prompt += datingHeat.promptDirective
+        return prompt
     }
 
     var body: some View {
@@ -44,6 +53,9 @@ struct ContentView: View {
                 if updated.id == selectedSkill.id { selectedSkill = updated }
             }
         }
+        .sheet(isPresented: $editingStyle) {
+            DatingStyleEditor(style: $datingStyle)
+        }
     }
 
     // MARK: - Header
@@ -55,6 +67,9 @@ struct ContentView: View {
                     Button(skill.name) { selectedSkill = skill }
                 }
                 Divider()
+                if showsHeatDial {
+                    Button("My texting style…") { editingStyle = true }
+                }
                 Button("Edit “\(selectedSkill.name)”…") { editingSkill = selectedSkill }
             } label: {
                 HStack(spacing: 4) {
