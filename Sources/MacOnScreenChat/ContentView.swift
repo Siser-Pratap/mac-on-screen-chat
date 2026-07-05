@@ -8,7 +8,11 @@ struct ContentView: View {
     @State private var editingStyle = false
     @AppStorage("datingHeat") private var datingHeatRaw = DatingHeat.auto.rawValue
     @AppStorage("datingStyle") private var datingStyle = ""
+    @State private var inputHeight: CGFloat = Self.minInputHeight
     @FocusState private var inputFocused: Bool
+
+    private static let minInputHeight: CGFloat = 22
+    private static let maxInputHeight: CGFloat = 150
 
     private var datingHeat: DatingHeat { DatingHeat(rawValue: datingHeatRaw) ?? .auto }
 
@@ -170,6 +174,12 @@ struct ContentView: View {
                 }
             }
             .padding(.top, 4)
+
+            Text("Tip: add WW:{…} anywhere to steer a reply, e.g. WW:{one savage line, no labels}")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+                .padding(.top, 6)
         }
     }
 
@@ -213,25 +223,68 @@ struct ContentView: View {
         .padding(.vertical, 10)
     }
 
-    /// The text input. Plain Return sends; Shift+Return inserts a newline.
+    /// The text input — a TextEditor so it scrolls and Shift+Return inserts a
+    /// newline. It auto-grows with the text (measured below) and starts scrolling
+    /// once it hits `maxInputHeight`. Plain Return sends; Shift+Return newlines.
     @ViewBuilder
     private var inputField: some View {
-        let field = TextField(selectedSkill.inputHint, text: $vm.input, axis: .vertical)
-            .textFieldStyle(.plain)
-            .lineLimit(1...6)
-            .focused($inputFocused)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+        let editor = ZStack(alignment: .topLeading) {
+            // Invisible mirror of the text; its height drives the editor height.
+            Text(vm.input.isEmpty ? " " : vm.input)
+                .font(.body)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(GeometryReader { geo in
+                    Color.clear.preference(key: InputHeightKey.self, value: geo.size.height)
+                })
+                .hidden()
+
+            if vm.input.isEmpty {
+                Text(selectedSkill.inputHint)
+                    .font(.body)
+                    .foregroundStyle(.tertiary)
+                    .allowsHitTesting(false)
+            }
+
+            TextEditor(text: $vm.input)
+                .font(.body)
+                .plainTextEditorIfAvailable()
+                .scrollContentBackground(.hidden)
+                .focused($inputFocused)
+                .frame(height: min(max(inputHeight, Self.minInputHeight), Self.maxInputHeight))
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+        .onPreferenceChange(InputHeightKey.self) { inputHeight = $0 }
 
         if #available(macOS 14.0, *) {
-            field.onKeyPress(keys: [.return], phases: .down) { press in
+            editor.onKeyPress(keys: [.return], phases: .down) { press in
                 guard !press.modifiers.contains(.shift) else { return .ignored }
                 if vm.canSend { vm.send(systemPrompt: effectivePrompt) }
                 return .handled
             }
         } else {
-            field
+            editor
         }
+    }
+}
+
+private extension View {
+    /// `.textEditorStyle(.plain)` is macOS 14+; no-op on older systems.
+    @ViewBuilder
+    func plainTextEditorIfAvailable() -> some View {
+        if #available(macOS 14.0, *) {
+            self.textEditorStyle(.plain)
+        } else {
+            self
+        }
+    }
+}
+
+/// Reports the natural height of the input text so the editor can auto-grow.
+private struct InputHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat { 0 }
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
