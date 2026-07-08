@@ -27,8 +27,22 @@ final class ChatViewModel: ObservableObject {
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !isStreaming else { return }
 
-        messages.append(ChatMessage(role: .user, text: trimmed))
-        try? database.appendMessage(role: .user, text: trimmed, sortOrder: messages.count - 1)
+        // Pull out any inline `WW:{...}` steering directive. It adjusts THIS reply
+        // (overriding the skill's formatting) and is kept out of the transcript.
+        let (cleaned, directive) = Self.extractDirective(from: trimmed)
+        let messageText = cleaned.isEmpty ? trimmed : cleaned
+        var effectiveSystem = systemPrompt
+        if let directive {
+            effectiveSystem += """
+            \n
+            HIGHEST-PRIORITY INSTRUCTION FROM ME for this reply — apply it and let \
+            it override any conflicting formatting or style rules above:
+            \(directive)
+            """
+        }
+
+        messages.append(ChatMessage(role: .user, text: messageText))
+        try? database.appendMessage(role: .user, text: messageText, sortOrder: messages.count - 1)
         input = ""
 
         let assistant = ChatMessage(role: .assistant, text: "")
@@ -45,7 +59,7 @@ final class ChatViewModel: ObservableObject {
         let snapshot = messages
         streamTask = Task { [weak self] in
             guard let self else { return }
-            let stream = client.stream(messages: snapshot, systemPrompt: systemPrompt)
+            let stream = client.stream(messages: snapshot, systemPrompt: effectiveSystem)
             for await chunk in stream {
                 if let idx = self.messages.firstIndex(where: { $0.id == assistantID }) {
                     self.messages[idx].text += chunk
@@ -76,6 +90,35 @@ final class ChatViewModel: ObservableObject {
             }
             return GeminiClient(model: model.modelName, apiKey: key)
         }
+    }
+
+    /// Extracts inline `WW:{...}` steering directives (case-insensitive) from the
+    /// input. Returns the message with those spans removed, plus the combined
+    /// directive text (nil if there were none).
+    static func extractDirective(from text: String) -> (message: String, directive: String?) {
+        let pattern = #"(?i)WW:\s*\{([^}]*)\}"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else {
+            return (text, nil)
+        }
+        let ns = text as NSString
+        let matches = regex.matches(in: text, range: NSRange(location: 0, length: ns.length))
+        guard !matches.isEmpty else { return (text, nil) }
+
+        var directives: [String] = []
+        for m in matches where m.numberOfRanges > 1 {
+            let d = ns.substring(with: m.range(at: 1))
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !d.isEmpty { directives.append(d) }
+        }
+
+        var message = text
+        for m in matches.reversed() {
+            if let range = Range(m.range, in: message) {
+                message.removeSubrange(range)
+            }
+        }
+        message = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        return (message, directives.isEmpty ? nil : directives.joined(separator: "\n"))
     }
 
     private func setAssistant(id: UUID, text: String) {

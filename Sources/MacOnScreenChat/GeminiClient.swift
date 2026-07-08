@@ -32,7 +32,7 @@ struct GeminiClient: LLMClient {
                         return
                     }
                     guard http.statusCode == 200 else {
-                        continuation.yield("⚠️ Gemini HTTP \(http.statusCode). Check the API key in .env and the model name.")
+                        continuation.yield(await errorMessage(status: http.statusCode, bytes: bytes))
                         continuation.finish()
                         return
                     }
@@ -60,6 +60,30 @@ struct GeminiClient: LLMClient {
                 }
             }
             continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    /// Builds a human message for a non-200, reading the reason from the body.
+    private func errorMessage(status: Int, bytes: URLSession.AsyncBytes) async -> String {
+        var body = ""
+        if let raw = try? await bytes.reduce(into: Data(), { $0.append($1) }),
+           let obj = try? JSONSerialization.jsonObject(with: raw) as? [String: Any],
+           let err = obj["error"] as? [String: Any],
+           let message = err["message"] as? String {
+            body = " (\(message))"
+        }
+
+        switch status {
+        case 429:
+            return "⚠️ Gemini rate/quota limit hit (HTTP 429).\(body) The free tier for \(model) is small — wait a bit, switch to a lighter model like Gemini 2.5 Flash, or use a Local (Ollama) model. Your API key is fine."
+        case 400:
+            return "⚠️ Gemini rejected the request (HTTP 400).\(body) The API key or request may be malformed."
+        case 401, 403:
+            return "⚠️ Gemini auth failed (HTTP \(status)).\(body) Check GEMINI_API_KEY in .env, then run ./build-app.sh and relaunch."
+        case 404:
+            return "⚠️ Gemini model not found (HTTP 404).\(body) Check the model name \"\(model)\"."
+        default:
+            return "⚠️ Gemini HTTP \(status).\(body)"
         }
     }
 

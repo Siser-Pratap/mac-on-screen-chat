@@ -49,6 +49,26 @@ final class AppDatabase: Sendable {
                 t.column("sortOrder", .integer).notNull()
             }
         }
+        // The "Dating reply" skill shipped after first launch, so the empty-table
+        // auto-seed won't add it for existing installs. Insert it here, but only
+        // if the user hasn't already created a skill with this id.
+        migrator.registerMigration("v3.seedDatingSkill") { db in
+            guard let dating = Skill.defaults.first(where: { $0.id == "dating" }),
+                  try Skill.filter(key: dating.id).fetchCount(db) == 0
+            else { return }
+            try dating.insert(db)
+        }
+        // Phase-2 prompt tuning: re-sync the "Dating reply" prompt to the current
+        // default. Only touches the systemPrompt of the seeded skill; the user can
+        // still edit it freely afterward (migrations run once).
+        migrator.registerMigration("v4.tuneDatingPrompt") { db in
+            guard let dating = Skill.defaults.first(where: { $0.id == "dating" }),
+                  var existing = try Skill.filter(key: dating.id).fetchOne(db)
+            else { return }
+            existing.systemPrompt = dating.systemPrompt
+            existing.inputHint = dating.inputHint
+            try existing.update(db)
+        }
         return migrator
     }
 
