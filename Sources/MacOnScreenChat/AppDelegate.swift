@@ -27,9 +27,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.write("[app] hotKey registered=\(hotKey != nil)")
 
         // Menu-bar icon: the only persistent way to quit / toggle (no Dock icon).
-        menuBar = MenuBarController { [weak controller] in
-            controller?.toggle()
-        }
+        menuBar = MenuBarController(
+            hiddenFromScreenShare: controller.isHiddenFromScreenShare,
+            onToggle: { [weak controller] in controller?.toggle() },
+            onToggleHideFromShare: { [weak controller] in
+                controller?.toggleHiddenFromScreenShare() ?? true
+            }
+        )
         Log.write("[app] menuBar created")
 
         // Show on launch so it's immediately discoverable.

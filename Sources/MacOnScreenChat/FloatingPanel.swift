@@ -6,6 +6,14 @@ final class FloatingPanel: NSPanel {
     /// Called when the user presses Esc inside the panel.
     var onCancel: (() -> Void)?
 
+    /// When `true`, the panel is excluded from all screen capture / screen
+    /// sharing (Zoom, Meet, Teams, QuickTime, OBS, `screencapture`) while
+    /// staying fully visible on the local display. See `visibility.md`.
+    var isHiddenFromScreenShare: Bool {
+        get { sharingType == SharingType.none }
+        set { sharingType = newValue ? SharingType.none : .readOnly }
+    }
+
     init(contentRect: NSRect) {
         super.init(
             contentRect: contentRect,
@@ -19,6 +27,13 @@ final class FloatingPanel: NSPanel {
         // combining them makes setCollectionBehavior throw. Keep only the former.
         level = .floating
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+
+        // Exclude this window from ALL screen capture / screen sharing. The
+        // window server never hands our pixels to another process, so the panel
+        // is invisible in Zoom / Meet / Teams / QuickTime / OBS / screencapture,
+        // while staying fully visible on the local physical display.
+        // Safe default; can be flipped at runtime via `isHiddenFromScreenShare`.
+        sharingType = .none
 
         isFloatingPanel = true
         hidesOnDeactivate = false          // stay put when another app is focused

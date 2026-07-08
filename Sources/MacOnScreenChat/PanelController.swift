@@ -5,11 +5,36 @@ import SwiftUI
 final class PanelController {
     private let panel: FloatingPanel
     private let frameKey = "panelFrame"
+    private let hideFromShareKey = "hideFromScreenShare"
+
+    /// Whether the panel is hidden from screen capture / sharing. Persisted in
+    /// `UserDefaults` (defaults to `true` — hidden). See `visibility.md`.
+    var isHiddenFromScreenShare: Bool {
+        get { panel.isHiddenFromScreenShare }
+        set {
+            panel.isHiddenFromScreenShare = newValue
+            UserDefaults.standard.set(newValue, forKey: hideFromShareKey)
+            log("hideFromScreenShare=\(newValue)")
+        }
+    }
+
+    /// Flip the hide-from-screen-share setting and return the new value.
+    @discardableResult
+    func toggleHiddenFromScreenShare() -> Bool {
+        isHiddenFromScreenShare.toggle()
+        return isHiddenFromScreenShare
+    }
 
     init() {
         Log.write("[panel] init: creating FloatingPanel")
         let defaultRect = NSRect(x: 0, y: 0, width: 380, height: 480)
         panel = FloatingPanel(contentRect: defaultRect)
+
+        // Restore the persisted hide-from-screen-share preference. Absent key
+        // (first launch) defaults to `true` so we're private out of the box.
+        let defaults = UserDefaults.standard
+        panel.isHiddenFromScreenShare =
+            defaults.object(forKey: hideFromShareKey) as? Bool ?? true
         Log.write("[panel] init: creating NSHostingView(ContentView)")
         panel.contentView = NSHostingView(rootView: ContentView())
         Log.write("[panel] init: hosting view set")
