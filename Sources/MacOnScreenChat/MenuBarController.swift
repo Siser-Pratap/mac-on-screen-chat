@@ -6,9 +6,21 @@ import AppKit
 final class MenuBarController {
     private let statusItem: NSStatusItem
     private let onToggle: () -> Void
+    /// Flips the hide-from-screen-share setting and returns the new value.
+    private let onToggleHideFromShare: () -> Bool
+    private let hideItem: NSMenuItem
 
-    init(onToggle: @escaping () -> Void) {
+    init(
+        hiddenFromScreenShare: Bool,
+        onToggle: @escaping () -> Void,
+        onToggleHideFromShare: @escaping () -> Bool
+    ) {
         self.onToggle = onToggle
+        self.onToggleHideFromShare = onToggleHideFromShare
+        hideItem = NSMenuItem(
+            title: "Hide from Screen Sharing",
+            action: #selector(hideFromShareTapped), keyEquivalent: ""
+        )
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem.button {
@@ -29,6 +41,14 @@ final class MenuBarController {
 
         menu.addItem(.separator())
 
+        // Privacy toggle — checkmark reflects whether the panel is excluded
+        // from screen capture. See `visibility.md`.
+        hideItem.target = self
+        hideItem.state = hiddenFromScreenShare ? .on : .off
+        menu.addItem(hideItem)
+
+        menu.addItem(.separator())
+
         let quitItem = NSMenuItem(
             title: "Quit On-Screen Chat", action: #selector(quitTapped), keyEquivalent: "q"
         )
@@ -39,5 +59,11 @@ final class MenuBarController {
     }
 
     @objc private func toggleTapped() { onToggle() }
+
+    @objc private func hideFromShareTapped() {
+        let hidden = onToggleHideFromShare()
+        hideItem.state = hidden ? .on : .off
+    }
+
     @objc private func quitTapped() { NSApp.terminate(nil) }
 }
