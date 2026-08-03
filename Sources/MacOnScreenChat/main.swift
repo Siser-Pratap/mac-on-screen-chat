@@ -16,6 +16,12 @@ if CommandLine.arguments.contains("--selftest") {
     exit(0)
 }
 
+// Dry-run the `/command {…}` and `WW:{…}` markers against a sample input.
+if let flag = CommandLine.arguments.firstIndex(of: "--markers") {
+    SelfTest.markers(CommandLine.arguments.dropFirst(flag + 1).joined(separator: " "))
+    exit(0)
+}
+
 // Entry point. Built as a SwiftPM executable (no .xcodeproj required).
 // Runs as an .accessory app: no Dock icon, lives as a floating panel.
 let app = NSApplication.shared

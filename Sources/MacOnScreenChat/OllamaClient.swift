@@ -69,8 +69,9 @@ struct OllamaClient: LLMClient {
         if !systemPrompt.isEmpty {
             apiMessages.append(["role": "system", "content": systemPrompt])
         }
-        // Skip empty messages (e.g. the assistant placeholder being streamed into).
-        for message in messages where !message.text.isEmpty {
+        // Skip empty messages (e.g. the assistant placeholder being streamed
+        // into) and local notes, which are UI-only.
+        for message in messages where message.role != .note && !message.text.isEmpty {
             apiMessages.append([
                 "role": message.role == .user ? "user" : "assistant",
                 "content": message.text,
