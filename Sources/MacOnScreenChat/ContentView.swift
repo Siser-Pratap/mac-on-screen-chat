@@ -3,9 +3,11 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var vm = ChatViewModel()
     @StateObject private var skillStore = SkillStore()
+    @StateObject private var ruleStore = RuleStore()
     @State private var selectedSkill: Skill = .fallback
     @State private var editingSkill: Skill?
     @State private var editingStyle = false
+    @State private var editingRules = false
     @AppStorage("datingHeat") private var datingHeatRaw = DatingHeat.auto.rawValue
     @AppStorage("datingStyle") private var datingStyle = ""
     @State private var inputHeight: CGFloat = Self.minInputHeight
@@ -60,6 +62,9 @@ struct ContentView: View {
         .sheet(isPresented: $editingStyle) {
             DatingStyleEditor(style: $datingStyle)
         }
+        .sheet(isPresented: $editingRules) {
+            RulesEditor(store: ruleStore)
+        }
     }
 
     // MARK: - Header
@@ -73,6 +78,9 @@ struct ContentView: View {
                 Divider()
                 if showsHeatDial {
                     Button("My texting style…") { editingStyle = true }
+                }
+                Button(ruleStore.rules.isEmpty ? "Rules…" : "Rules (\(ruleStore.rules.count))…") {
+                    editingRules = true
                 }
                 Button("Edit “\(selectedSkill.name)”…") { editingSkill = selectedSkill }
             } label: {
@@ -175,11 +183,14 @@ struct ContentView: View {
             }
             .padding(.top, 4)
 
-            Text("Tip: add WW:{…} anywhere to steer a reply, e.g. WW:{one savage line, no labels}")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-                .multilineTextAlignment(.center)
-                .padding(.top, 6)
+            VStack(spacing: 4) {
+                Text("Steer one reply: WW:{one savage line, no labels}")
+                Text("Set a lasting rule: /command {always answer in under 5 lines}")
+            }
+            .font(.caption2)
+            .foregroundStyle(.tertiary)
+            .multilineTextAlignment(.center)
+            .padding(.top, 6)
         }
     }
 
@@ -209,18 +220,34 @@ struct ContentView: View {
         HStack(alignment: .bottom, spacing: 8) {
             inputField
 
-            Button {
-                vm.send(systemPrompt: effectivePrompt)
-            } label: {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 22))
+            // While a reply is streaming the send button becomes a stop button.
+            // Esc is left alone — it hides the panel — so ⌘. cancels instead.
+            if vm.isStreaming {
+                Button { vm.stop() } label: {
+                    Image(systemName: "stop.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.borderless)
+                .keyboardShortcut(".", modifiers: .command)
+                .help("Stop generating (⌘.)")
+            } else {
+                Button { send() } label: {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.system(size: 22))
+                }
+                .buttonStyle(.borderless)
+                .keyboardShortcut(.return, modifiers: .command)
+                .disabled(!vm.canSend)
+                .help("Send (↩)")
             }
-            .buttonStyle(.borderless)
-            .keyboardShortcut(.return, modifiers: .command)
-            .disabled(!vm.canSend)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
+    }
+
+    private func send() {
+        vm.send(systemPrompt: effectivePrompt, rules: ruleStore)
     }
 
     /// The text input — a TextEditor so it scrolls and Shift+Return inserts a
@@ -260,7 +287,7 @@ struct ContentView: View {
         if #available(macOS 14.0, *) {
             editor.onKeyPress(keys: [.return], phases: .down) { press in
                 guard !press.modifiers.contains(.shift) else { return .ignored }
-                if vm.canSend { vm.send(systemPrompt: effectivePrompt) }
+                if vm.canSend { send() }
                 return .handled
             }
         } else {

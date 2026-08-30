@@ -97,7 +97,8 @@ struct GeminiClient: LLMClient {
 
     private func requestBody(messages: [ChatMessage], systemPrompt: String) -> [String: Any] {
         var contents: [[String: Any]] = []
-        for message in messages where !message.text.isEmpty {
+        // Local notes are UI-only and never sent.
+        for message in messages where message.role != .note && !message.text.isEmpty {
             contents.append([
                 "role": message.role == .user ? "user" : "model", // Gemini uses "model"
                 "parts": [["text": message.text]],

@@ -1,9 +1,12 @@
 import Foundation
 import GRDB
 
-enum ChatRole {
+enum ChatRole: String {
     case user
     case assistant
+    /// A local acknowledgement (e.g. "Rule saved") shown in the transcript.
+    /// Never sent to the model — see the client request builders.
+    case note
 }
 
 struct ChatMessage: Identifiable, Equatable {
@@ -20,6 +23,17 @@ struct MessageRecord: Codable, FetchableRecord, PersistableRecord {
     var sortOrder: Int
 
     static let databaseTableName = "message"
+}
+
+/// A standing rule captured from `/command {…}`. Unlike a `WW:{…}` directive,
+/// which steers one reply, a rule is persisted and applied to every reply until
+/// it's deleted — including across relaunches and "New chat".
+struct Rule: Codable, Identifiable, Hashable, FetchableRecord, PersistableRecord {
+    var id: String
+    var text: String
+    var sortOrder: Int
+
+    static let databaseTableName = "rule"
 }
 
 /// A "special prompt," persisted in SQLite (table `skill`) and editable at

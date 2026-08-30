@@ -69,6 +69,14 @@ final class AppDatabase: Sendable {
             existing.inputHint = dating.inputHint
             try existing.update(db)
         }
+        // Standing rules captured from `/command {…}`.
+        migrator.registerMigration("v5.createRule") { db in
+            try db.create(table: "rule") { t in
+                t.primaryKey("id", .text)
+                t.column("text", .text).notNull()
+                t.column("sortOrder", .integer).notNull()
+            }
+        }
         return migrator
     }
 
@@ -96,12 +104,32 @@ final class AppDatabase: Sendable {
         }
     }
 
+    // MARK: - Standing rules
+
+    func allRules() throws -> [Rule] {
+        try dbQueue.read { db in
+            try Rule.order(Column("sortOrder")).fetchAll(db)
+        }
+    }
+
+    func save(_ rule: Rule) throws {
+        try dbQueue.write { db in try rule.save(db) }
+    }
+
+    func deleteRule(id: String) throws {
+        _ = try dbQueue.write { db in try Rule.deleteOne(db, key: id) }
+    }
+
+    func clearRules() throws {
+        _ = try dbQueue.write { db in try Rule.deleteAll(db) }
+    }
+
     // MARK: - Conversation (single rolling thread)
 
     func loadMessages() throws -> [ChatMessage] {
         try dbQueue.read { db in
             try MessageRecord.order(Column("sortOrder")).fetchAll(db).map {
-                ChatMessage(role: $0.role == "user" ? .user : .assistant, text: $0.text)
+                ChatMessage(role: ChatRole(rawValue: $0.role) ?? .assistant, text: $0.text)
             }
         }
     }
@@ -109,7 +137,7 @@ final class AppDatabase: Sendable {
     func appendMessage(role: ChatRole, text: String, sortOrder: Int) throws {
         let record = MessageRecord(
             id: UUID().uuidString,
-            role: role == .user ? "user" : "assistant",
+            role: role.rawValue,
             text: text,
             sortOrder: sortOrder
         )
