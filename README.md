@@ -24,7 +24,16 @@ skills for outreach, replies, and rewriting.
   - Skills are stored in SQLite and **editable** in-app (picker → "Edit …").
 - **Switchable models** — pick from local Ollama models or Google Gemini via the
   `cpu` menu in the header. Local is private/offline; Gemini needs an API key.
-- **Persistent** — your conversation and skills survive a restart.
+- **Clean formatting, always** — every reply comes back in short paragraphs with
+  real spacing between them, and never contains `**` (asked for in the prompt,
+  and stripped from the stream so it's guaranteed). See
+  [formatting.md](formatting.md).
+- **Standing rules** — type `/command {always answer in under 5 lines}` and that
+  rule applies to every reply from then on, across skills and restarts. Manage
+  them in the picker → "Rules …". For a one-off nudge, use `WW:{…}` instead.
+- **Stop** — the send button becomes a stop button (**⌘.**) while a reply
+  streams; whatever arrived is kept.
+- **Persistent** — your conversation, skills, and rules survive a restart.
 - **Menu-bar icon** — toggle or quit (the app has no Dock icon by design).
 - **Copy** — hover a reply to copy it.
 
@@ -67,6 +76,13 @@ Headless data-layer check (no GUI):
 .build/debug/MacOnScreenChat --selftest
 ```
 
+Dry-run the input markers — shows what gets saved as a rule, what steers just
+this reply, and what actually reaches the model (writes nothing):
+
+```sh
+.build/debug/MacOnScreenChat --markers 'summarize this /command {no emojis} WW:{one line}'
+```
+
 ## How it works
 
 | Piece | File |
@@ -76,8 +92,9 @@ Headless data-layer check (no GUI):
 | Chat UI | `ContentView.swift`, `MessageBubble.swift` |
 | View model / streaming | `ChatViewModel.swift` |
 | LLM backend (swappable) | `LLMClient.swift`, `OllamaClient.swift`, `EchoClient` |
-| Skills + history (SQLite/GRDB) | `Models.swift`, `AppDatabase.swift`, `SkillStore.swift` |
-| Skill editor | `SkillEditor.swift` |
+| Reply formatting + `**` stripping | `ResponseStyle.swift` |
+| Skills + history + rules (SQLite/GRDB) | `Models.swift`, `AppDatabase.swift`, `SkillStore.swift`, `RuleStore.swift` |
+| Skill / rules editors | `SkillEditor.swift`, `RulesEditor.swift` |
 | Menu-bar icon | `MenuBarController.swift` |
 
 The LLM is behind an `LLMClient` protocol, so swapping Ollama for another

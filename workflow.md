@@ -123,14 +123,15 @@ for SQLite in Phase 3/5, and a markdown renderer when the transcript needs it.
 - [ ] Skill picker (segmented control or dropdown) above the input.
 - [ ] Empty state showing available skills + example usage.
 
-### Phase 3 — LLM integration
-- [ ] Define the `LLMClient` protocol + a mock/echo client (used in Phases 1–2).
-- [ ] **Decide the provider** (Claude API is the leading candidate) and implement
-      the real client behind the same protocol.
-- [ ] Implement streaming responses into the transcript.
-- [ ] Store the API key in **Keychain** (never plaintext); add a settings field.
-- [ ] Handle errors gracefully (no key, rate limit, network) with inline notices.
-- [ ] **Checkpoint:** plain chat works end-to-end.
+### Phase 3 — LLM integration  ✅ (Ollama)
+- [x] Define the `LLMClient` protocol + `EchoClient` mock (pulled into Phase 2).
+- [x] Provider decided: **Ollama (local)**. Implement `OllamaClient` against the
+      same protocol, streaming `/api/chat` NDJSON.
+- [x] Stream responses into the transcript; default model `qwen3:30b`, `think:false`.
+- [x] No API key / Keychain needed (local server).
+- [x] Handle errors inline (server down, model not pulled, bad HTTP status).
+- [ ] **Checkpoint:** plain chat answers from the local model end-to-end.
+- [ ] (Later) model picker in settings; capability-aware `think` handling.
 
 ### Phase 4 — Skills (the "special prompts")
 - [ ] Define the skill schema and a registry; seed the 4 starter skills into
@@ -186,8 +187,9 @@ Adding a new "special prompt" later = append one object like this. No code chang
 ## 6. Decisions — all settled ✅
 
 - ✅ **Tech stack** — Native SwiftUI + AppKit `NSPanel`.
-- ✅ **LLM** — deferred; build behind an `LLMClient` protocol, mock first,
-  pick provider (likely Claude API) in Phase 3.
+- ✅ **LLM** — **Ollama (local)**, default model `qwen3:30b`, behind the
+  `LLMClient` protocol (`OllamaClient`). No API key / no Keychain needed.
+  `EchoClient` retained as a no-network mock for tests.
 - ✅ **Global hotkey** — **⌘⇧Space**, via Carbon `RegisterEventHotKey`
   (system-wide, needs **no** Accessibility permission). Rebinding can come later.
 - ✅ **Distribution** — **local now, signed later**. Run unsigned from Xcode
@@ -199,9 +201,13 @@ Adding a new "special prompt" later = append one object like this. No code chang
 
 ---
 
-## 7. Suggested milestones
+## 7. Milestones
 
-- **M1:** Floating window + hotkey (Phase 1) — the riskiest piece, done first.
-- **M2:** Working chat with Claude (Phases 2–3).
-- **M3:** The 3 starter skills (Phase 4) — the actual product value.
-- **M4:** QoL + packaging (Phases 5–6).
+- ✅ **M1:** Floating window + ⌘⇧Space hotkey (Phase 1) — riskiest piece, done first.
+- ✅ **M2:** Working streamed chat via local Ollama (Phases 2–3).
+- ✅ **M3:** The 4 skills, SQLite-backed + editable (Phase 4).
+- ✅ **M4 (features):** QoL — menu-bar, copy, persistence (Phase 5) + README (Phase 6).
+- ⬜ **Deferred:** code-sign + notarize + `.dmg`; in-app model picker;
+  multi-conversation history; configurable-hotkey UI.
+
+**Status: feature-complete for local daily use.** Run with `swift run`.
