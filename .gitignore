@@ -18,3 +18,4 @@ secrets.json
 
 # Built app bundle
 MacOnScreenChat.app/
+node_modules
