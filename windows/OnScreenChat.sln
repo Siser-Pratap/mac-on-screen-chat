@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-32B4-A175-3E30D0BEE0A9}") = "OnScreenChat.Core", "src\OnScreenChat.Core\OnScreenChat.Core.csproj", "{66D12909-0E4B-4008-8E19-AC313EC9AD6F}"
 EndProject
+Project("{9A19103F-16F7-32B4-A175-3E30D0BEE0A9}") = "OnScreenChat.SelfTest", "src\OnScreenChat.SelfTest\OnScreenChat.SelfTest.csproj", "{A0C71021-8E58-4869-A40F-F6489CB4C2DF}"
+EndProject
 Project("{9A19103F-16F7-32B4-A175-3E30D0BEE0A9}") = "OnScreenChat.Core.Tests", "tests\OnScreenChat.Core.Tests\OnScreenChat.Core.Tests.csproj", "{84D39E5C-2E00-4862-B1B4-8C7A7ED670E8}"
 EndProject
 Global
@@ -21,6 +23,10 @@ Global
 		{84D39E5C-2E00-4862-B1B4-8C7A7ED670E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84D39E5C-2E00-4862-B1B4-8C7A7ED670E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84D39E5C-2E00-4862-B1B4-8C7A7ED670E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0C71021-8E58-4869-A40F-F6489CB4C2DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0C71021-8E58-4869-A40F-F6489CB4C2DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0C71021-8E58-4869-A40F-F6489CB4C2DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0C71021-8E58-4869-A40F-F6489CB4C2DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

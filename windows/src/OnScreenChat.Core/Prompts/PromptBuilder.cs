@@ -34,8 +34,7 @@ public static partial class PromptBuilder
 
         if (!string.IsNullOrEmpty(directive))
         {
-            prompt += "\n\nHIGHEST-PRIORITY INSTRUCTION FROM ME for this reply — apply it and let " +
-                      "it override any conflicting formatting or style rules above:\n" + directive;
+            prompt += string.Format(PromptTemplates.Directive, directive);
         }
 
         return prompt;

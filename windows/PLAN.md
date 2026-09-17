@@ -129,6 +129,7 @@ windows/
       Views/{ChatPage,MessageBubble,SkillEditorDialog,RulesEditorDialog,DatingStyleDialog}.xaml(.cs)
 
     OnScreenChat.SelfTest/               # net10.0 console — the `--selftest` parity harness
+                                         #   --selftest | --markers "<text>" | --gemini
 
   tests/
     OnScreenChat.Core.Tests/             # xUnit over the ported pure logic
@@ -197,13 +198,17 @@ removal, and the four-part system-prompt precedence order.
 formatting contract and the heat calibrations are **generated** from the Swift
 sources by `windows/tools/sync-prompts.py` rather than transcribed — see risk #6.
 
-### Phase 2 — Data + Gemini *(Linux-verifiable)*
+### Phase 2 — Data + Gemini *(Linux-verifiable)* ✅ **DONE**
 `AppDatabase` with the migrator and seed. `SkillStore`, `RuleStore`.
 `ILlmClient`, `EchoClient`, `GeminiClient` (SSE, cancellation, the full
 429/400/401/404 error-copy table). `ModelOption` with the two Gemini entries.
 The `OnScreenChat.SelfTest` console reproduces `--selftest` and `--markers`.
 **Done when:** `dotnet run --project OnScreenChat.SelfTest -- --selftest` seeds
 and round-trips a DB, and a real key streams a Gemini reply to stdout.
+**Result:** 142 tests passing, zero build warnings. `--selftest` and `--markers`
+reproduce the Mac output; `--gemini` streams a live reply when a key is present.
+The prompt generator also now covers the standing-rules and directive blocks, so
+no prompt text in the Windows build is hand-transcribed.
 
 ### Phase 3 — The floating panel *(Windows)*
 WinUI head, borderless topmost window, acrylic backdrop, no taskbar entry,

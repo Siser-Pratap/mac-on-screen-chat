@@ -65,11 +65,24 @@ def read_multiline(text: str, i: int) -> tuple[str, int]:
     # A trailing backslash is a line continuation: join without a newline.
     joined: list[str] = []
     for line in lines:
-        if joined and joined[-1] is not None and joined[-1].endswith("\\"):
+        if joined and joined[-1].endswith("\\"):
             joined[-1] = joined[-1][:-1] + line
         else:
             joined.append(line)
-    return "\n".join(joined), end + 3
+    return decode_escapes("\n".join(joined)), end + 3
+
+
+def decode_escapes(text: str) -> str:
+    r"""Resolves Swift escape sequences, leaving `\(interpolation)` alone."""
+    out, i = [], 0
+    while i < len(text):
+        if text[i] == "\\" and i + 1 < len(text) and text[i + 1] in SIMPLE_ESCAPES:
+            out.append(SIMPLE_ESCAPES[text[i + 1]])
+            i += 2
+            continue
+        out.append(text[i])
+        i += 1
+    return "".join(out)
 
 
 def field(text: str, start: int, name: str) -> tuple[str, int]:
@@ -170,6 +183,31 @@ def emit_heat() -> str:
     return "\n".join(out) + "\n"
 
 
+def emit_templates() -> str:
+    """The two prompt blocks built around an interpolated value."""
+    rules_src = (SWIFT / "RuleStore.swift").read_text(encoding="utf-8")
+    rules = read_multiline(rules_src, rules_src.index('"""', rules_src.index("var promptBlock")))[0]
+
+    vm_src = (SWIFT / "ChatViewModel.swift").read_text(encoding="utf-8")
+    at = vm_src.index("HIGHEST-PRIORITY")
+    directive = read_multiline(vm_src, vm_src.rindex('"""', 0, at))[0]
+
+    def template(value: str, placeholder: str) -> str:
+        # Escape braces for string.Format, then re-open the one real slot.
+        return value.replace("{", "{{").replace("}", "}}").replace(placeholder, "{0}")
+
+    out = [HEADER.format(source="Sources/MacOnScreenChat/{RuleStore,ChatViewModel}.swift")]
+    out.append("namespace OnScreenChat.Core.Prompts;\n")
+    out.append("/// <summary>Prompt blocks that wrap a runtime value; use with string.Format.</summary>")
+    out.append("public static class PromptTemplates\n{")
+    out.append("    /// <summary>{0} is the numbered list of standing rules.</summary>")
+    out.append(f"    public const string StandingRules =\n        {csharp_raw(template(rules, chr(92) + '(list)'), ' ' * 8)};\n")
+    out.append("    /// <summary>{0} is the one-shot directive text.</summary>")
+    out.append(f"    public const string Directive =\n        {csharp_raw(template(directive, chr(92) + '(directive)'), ' ' * 8)};")
+    out.append("}")
+    return "\n".join(out) + "\n"
+
+
 def write(path: Path, content: str, check: bool) -> bool:
     """Writes the file, or in check mode reports whether it is stale."""
     rel = path.relative_to(ROOT)
@@ -196,6 +234,7 @@ def main() -> int:
         write(CORE / "Data" / "SkillDefaults.g.cs", emit_skills(skills), check),
         write(CORE / "Text" / "ResponseStyleContract.g.cs", emit_contract(), check),
         write(CORE / "Prompts" / "DatingHeatText.g.cs", emit_heat(), check),
+        write(CORE / "Prompts" / "PromptTemplates.g.cs", emit_templates(), check),
     ]
 
     if check and not all(ok):
