@@ -101,6 +101,7 @@ rewritten against Win32/WinUI.
 ```
 windows/
   OnScreenChat.sln
+  OnScreenChat.Core.slnf                 # cross-platform subset: omits the WinUI head
   Directory.Build.props                  # shared TFM / LangVersion / nullable
   build-app.ps1                          # ≙ build-app.sh: publish + copy .env
   .env.example
@@ -113,6 +114,7 @@ windows/
       Data/{AppDatabase,Skill,Rule,ChatMessage,SkillDefaults,SkillStore,RuleStore}.cs
       Llm/{ILlmClient,GeminiClient,EchoClient,ModelOption}.cs
       Prompts/{PromptBuilder,DatingHeat}.cs
+      Config/{AppPaths,SettingsStore,PanelFrame}.cs
       Text/{ResponseStyle,AsteriskStripper}.cs
       Diagnostics/Log.cs
 
@@ -210,33 +212,79 @@ reproduce the Mac output; `--gemini` streams a live reply when a key is present.
 The prompt generator also now covers the standing-rules and directive blocks, so
 no prompt text in the Windows build is hand-transcribed.
 
-### Phase 3 — The floating panel *(Windows)*
+### Phase 3 — The floating panel *(Windows)* ⚠️ **WRITTEN, NOT YET VERIFIED**
 WinUI head, borderless topmost window, acrylic backdrop, no taskbar entry,
 caption drag regions, frame save/restore with off-screen recovery, Esc to hide.
 **Done when:** the panel floats over a maximized app and survives a restart in place.
 
-### Phase 4 — Hotkey, tray, single instance *(Windows)*
+This is the first phase that cannot be built or run in the Linux codespace. The
+geometry and settings logic was pulled into `OnScreenChat.Core` precisely so the
+losable parts stay testable (31 tests); everything under `src/OnScreenChat/` is
+**written but never compiled**. Expect to fix small API details on first build.
+
+**First build on Windows:**
+
+```powershell
+cd windows
+dotnet build src/OnScreenChat -r win-x64
+dotnet run   --project src/OnScreenChat -r win-x64
+```
+
+**Verification checklist:**
+
+- [ ] It compiles at all. (Package versions are already pinned to a verified
+      restore: WindowsAppSDK 1.7.260224002, SDK.BuildTools 10.0.28000.2705.)
+- [ ] Panel appears, centered, roughly 380×480 at 100% scaling.
+- [ ] It stays above a maximized window, and above a fullscreen video.
+- [ ] No taskbar button, and it does not appear in Alt+Tab.
+- [ ] Background is acrylic — and still renders sanely with transparency
+      effects turned off in Settings → Personalization → Colors.
+- [ ] Dragging the background moves it; dragging the text box does **not**.
+- [ ] The text box still takes focus and typed characters.
+- [ ] Resizing from the window edges works.
+- [ ] Esc hides it. (Until Phase 4 there is no way to bring it back — relaunch.)
+- [ ] Move it, quit, relaunch: it returns to the same spot.
+- [ ] Move it to a second monitor, quit, unplug that monitor, relaunch: it
+      recenters on the primary display rather than vanishing.
+- [ ] On a 150%-scaled display it opens at a sensible size, not two-thirds.
+
+**Most likely to need fixing:** the drag regions. `DragRegionManager` declares
+the whole client area a caption and punches passthrough holes for the controls —
+the inverse of how WinUI samples usually do it, and the scaling/recompute timing
+is guesswork until it runs.
+
+### Phase 4 — Hotkey, tray, single instance *(Windows)* ⚠️ **WRITTEN, NOT YET VERIFIED**
 `RegisterHotKey` on Ctrl+Shift+Space via a message-only window; tray icon with
 the three menu items; named-`Mutex` single-instance guard that signals the
 running instance to toggle instead of launching a second copy.
 **Done when:** Ctrl+Shift+Space toggles from any app; tray Quit exits cleanly and
 unregisters the hotkey.
+**Built with:** direct `Shell_NotifyIcon` / `TrackPopupMenu` P/Invoke rather than
+`H.NotifyIcon.WinUI` — the app already owns a message-only window for `WM_HOTKEY`,
+so a package would have added version surface without removing work.
 
-### Phase 5 — Hide from screen share *(Windows)*
+### Phase 5 — Hide from screen share *(Windows)* ⚠️ **WRITTEN, NOT YET VERIFIED**
 `SetWindowDisplayAffinity` with `WDA_EXCLUDEFROMCAPTURE`, wired to the tray
 checkbox and persisted. Re-apply after any window recreation.
-**Done when:** verified against the matrix in §7.
+**Done when:** verified against the matrix in §7. **This is the one to actually
+test before trusting it** — a failure to apply the flag is logged loudly, but a
+capture path that ignores it looks identical to success from inside the app.
 
-### Phase 6 — Chat UI *(Windows)*
+### Phase 6 — Chat UI *(Windows)* ⚠️ **WRITTEN, NOT YET VERIFIED**
 Header (skill menu, model menu, new chat), transcript with paragraph bubbles +
 hover-copy, empty state, auto-growing input, Enter/Shift+Enter, streaming into
 the bubble, Ctrl+. to stop, the dating heat bar, and the three dialogs.
 **Done when:** full flow works end-to-end against Gemini.
+**Deliberate simplification:** a reply renders as one wrapped text block rather
+than a view per paragraph. Blank lines still separate paragraphs; the spacing is
+tighter than macOS. Revisit if it reads badly — it needs a paragraph list that
+rebuilds per streamed chunk, which is why it was not done blind.
 
-### Phase 7 — Packaging + docs
-`build-app.ps1` (publish self-contained win-x64 + copy `.env` to
-`%LOCALAPPDATA%`), `windows/README.md`, `.gitignore` additions
-(`bin/`, `obj/`, `publish/`). Code signing stays deferred, as on Mac.
+### Phase 7 — Packaging + docs ⚠️ **WRITTEN, NOT YET VERIFIED**
+`build-app.ps1` (runs the tests, publishes self-contained win-x64, copies `.env`
+to `%LOCALAPPDATA%`), `windows/README.md`, `.gitignore` additions. The tray icon
+is generated by `tools/make-icon.py` — no image library was available, so it is
+rasterised as 32-bpp BMP-in-ICO at six sizes. Code signing stays deferred, as on Mac.
 
 ---
 

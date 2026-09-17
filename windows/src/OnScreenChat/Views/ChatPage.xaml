@@ -1,0 +1,178 @@
+<UserControl
+    x:Class="OnScreenChat.Views.ChatPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:views="using:OnScreenChat.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    MinWidth="360"
+    MinHeight="420">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header: skill picker, model picker, new chat. -->
+        <Grid Grid.Row="0" Padding="12,8" ColumnSpacing="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <DropDownButton x:Name="SkillButton" Grid.Column="0" Padding="8,4">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon FontSize="14" Glyph="&#xE945;" />
+                    <TextBlock x:Name="SkillLabel" />
+                </StackPanel>
+                <DropDownButton.Flyout>
+                    <MenuFlyout x:Name="SkillFlyout" Placement="Bottom" />
+                </DropDownButton.Flyout>
+            </DropDownButton>
+
+            <DropDownButton
+                x:Name="ModelButton"
+                Grid.Column="2"
+                Padding="8,4"
+                ToolTipService.ToolTip="Model">
+                <FontIcon FontSize="14" Glyph="&#xE964;" />
+                <DropDownButton.Flyout>
+                    <MenuFlyout x:Name="ModelFlyout" Placement="Bottom" />
+                </DropDownButton.Flyout>
+            </DropDownButton>
+
+            <Button
+                x:Name="NewChatButton"
+                Grid.Column="3"
+                Padding="8,4"
+                Click="OnNewChat"
+                ToolTipService.ToolTip="New chat">
+                <FontIcon FontSize="14" Glyph="&#xE932;" />
+            </Button>
+        </Grid>
+
+        <Border
+            Grid.Row="0"
+            Height="1"
+            VerticalAlignment="Bottom"
+            Opacity="0.4"
+            Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+        <!-- Transcript. -->
+        <ScrollViewer
+            x:Name="TranscriptScroller"
+            Grid.Row="1"
+            Padding="12,10"
+            VerticalScrollBarVisibility="Auto"
+            VerticalScrollMode="Auto">
+            <Grid>
+                <ItemsControl x:Name="Transcript">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <views:MessageBubble Message="{Binding}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Empty state. -->
+                <StackPanel
+                    x:Name="EmptyState"
+                    Spacing="10"
+                    Margin="4,24,4,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top">
+                    <FontIcon FontSize="26" Glyph="&#xE8BD;" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                    <TextBlock
+                        Text="On-Screen Chat"
+                        HorizontalAlignment="Center"
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBlock
+                        Text="Pick a skill above, paste a message, and send."
+                        HorizontalAlignment="Center"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap"
+                        Opacity="0.7" />
+
+                    <StackPanel x:Name="SkillHints" Spacing="6" Margin="0,6,0,0" />
+
+                    <StackPanel Spacing="3" Margin="0,6,0,0" Opacity="0.55">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="Steer one reply:  WW:{one savage line, no labels}" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="Set a lasting rule:  /command {always answer in under 5 lines}" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Heat dial (Dating reply only). -->
+        <Grid
+            x:Name="HeatBar"
+            Grid.Row="2"
+            Visibility="Collapsed"
+            Padding="12,0,12,4"
+            ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <FontIcon
+                Grid.Column="0"
+                FontSize="13"
+                Opacity="0.7"
+                Glyph="&#xE7A6;"
+                ToolTipService.ToolTip="How much she's into it — steers how far the replies escalate" />
+
+            <ComboBox
+                x:Name="HeatPicker"
+                Grid.Column="1"
+                HorizontalAlignment="Stretch"
+                SelectionChanged="OnHeatChanged" />
+        </Grid>
+
+        <!-- Input bar. -->
+        <Grid Grid.Row="3" Padding="12,8,12,10" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox
+                x:Name="InputBox"
+                Grid.Column="0"
+                AcceptsReturn="True"
+                TextWrapping="Wrap"
+                MaxHeight="150"
+                MinHeight="34"
+                TextChanged="OnInputChanged"
+                PreviewKeyDown="OnInputKeyDown" />
+
+            <Button
+                x:Name="SendButton"
+                Grid.Column="1"
+                VerticalAlignment="Bottom"
+                Height="34"
+                Width="40"
+                Style="{StaticResource AccentButtonStyle}"
+                Click="OnSend"
+                ToolTipService.ToolTip="Send (Enter)">
+                <FontIcon x:Name="SendGlyph" FontSize="14" Glyph="&#xE1D9;" />
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>

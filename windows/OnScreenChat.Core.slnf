@@ -1,0 +1,10 @@
+{
+  "solution": {
+    "path": "OnScreenChat.sln",
+    "projects": [
+      "src\\OnScreenChat.Core\\OnScreenChat.Core.csproj",
+      "src\\OnScreenChat.SelfTest\\OnScreenChat.SelfTest.csproj",
+      "tests\\OnScreenChat.Core.Tests\\OnScreenChat.Core.Tests.csproj"
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+<ContentDialog
+    x:Class="OnScreenChat.Views.DatingStyleDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="My texting style"
+    PrimaryButtonText="Save"
+    SecondaryButtonText="Clear"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="10" Width="440">
+        <TextBlock
+            TextWrapping="Wrap"
+            Opacity="0.7"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="Applies to the Dating reply skill. Leave it empty to let the model just match her energy." />
+
+        <TextBox
+            x:Name="StyleBox"
+            AcceptsReturn="True"
+            TextWrapping="Wrap"
+            Height="220"
+            ScrollViewer.VerticalScrollBarVisibility="Auto"
+            PlaceholderText="Describe how you actually text so the replies sound like you. For example:&#x0a;• Tone/humor: dry and sarcastic, self-deprecating, lots of teasing&#x0a;• Length: short, one line, rarely more than a sentence&#x0a;• Style: all lowercase, no periods, occasional &quot;haha&quot;/&quot;lol&quot;&#x0a;• Emojis: barely any, maybe a 😏 when teasing&#x0a;• Words I use / avoid: …" />
+    </StackPanel>
+</ContentDialog>
