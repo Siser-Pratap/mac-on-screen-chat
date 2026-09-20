@@ -24,6 +24,13 @@
          need the Windows App SDK runtime pre-installed. The equivalent of the
          Mac app's unsigned local .app bundle. -->
     <WindowsPackageType>None</WindowsPackageType>
+
+    <!-- Still unpackaged. This only says "use the Windows App SDK's own PRI /
+         MSIX build tasks", which ship in the NuGet package. Without it the
+         build falls back to Visual Studio's AppxPackage targets, so
+         resources.pri generation needs a VS install and fails on a plain
+         dotnet SDK (MSB4062: Microsoft.Build.Packaging.Pri.Tasks). -->
+    <EnableMsixTooling>true</EnableMsixTooling>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <SelfContained>true</SelfContained>
 
