@@ -25,7 +25,12 @@ public static class Program
                 var queue = DispatcherQueue.GetForCurrentThread();
                 SynchronizationContext.SetSynchronizationContext(
                     new DispatcherQueueSynchronizationContext(queue));
-                _ = new App();
+
+                // Constructing it is the whole job: Application's constructor
+                // registers it as Current and OnLaunched takes over. It cannot
+                // be `_ = new App()` — `_` is the callback parameter here, so
+                // that assigns to it instead of discarding.
+                new App();
             });
         }
         finally
