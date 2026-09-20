@@ -8,7 +8,7 @@ public sealed partial class SkillEditorDialog : ContentDialog
 {
     private readonly Skill _original;
 
-    public SkillEditorDialog(Skill skill)
+    internal SkillEditorDialog(Skill skill)
     {
         InitializeComponent();
 
@@ -26,8 +26,13 @@ public sealed partial class SkillEditorDialog : ContentDialog
         PromptBox.Text = skill.SystemPrompt;
     }
 
-    /// <summary>The edited skill, once the dialog closes with Save.</summary>
-    public Skill? Result { get; private set; }
+    /// <summary>
+    /// The edited skill, once the dialog closes with Save. Deliberately
+    /// <c>internal</c>: a public property of a Core model type makes the XAML
+    /// type-info generator emit <c>new Skill()</c>, which cannot compile
+    /// against Skill's <c>required</c> members. Only ChatPage reads it.
+    /// </summary>
+    internal Skill? Result { get; private set; }
 
     private void OnNameChanged(object sender, TextChangedEventArgs args) =>
         IsPrimaryButtonEnabled = !string.IsNullOrWhiteSpace(NameBox.Text);
