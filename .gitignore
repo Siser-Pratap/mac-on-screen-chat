@@ -80,3 +80,7 @@ __pycache__/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Local build output for download (may contain .env secrets) — never commit.
+dist/
+*.zip

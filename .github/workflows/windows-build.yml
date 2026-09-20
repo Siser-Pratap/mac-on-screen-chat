@@ -1,0 +1,68 @@
+# Builds the Windows app on a real Windows runner.
+#
+# WinUI 3's XAML compiler is a Windows-only executable, so `dotnet publish` of
+# the app head cannot run on Linux or in a Codespace. This is the way to get a
+# downloadable .exe without a Windows machine to hand.
+name: Windows build
+
+on:
+  workflow_dispatch:
+    inputs:
+      runtime:
+        description: Target runtime
+        type: choice
+        options: [win-x64, win-arm64]
+        default: win-x64
+  push:
+    branches: [windows-version]
+    paths:
+      - 'windows/**'
+      - '.github/workflows/windows-build.yml'
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    env:
+      RUNTIME: ${{ inputs.runtime || 'win-x64' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Core is platform-free; fail before spending time on the publish.
+      - name: Test core
+        run: dotnet test .\windows\OnScreenChat.Core.slnf --configuration Release --nologo
+
+      - name: Publish self-contained
+        run: >
+          dotnet publish .\windows\src\OnScreenChat\OnScreenChat.csproj
+          --configuration Release
+          --runtime $env:RUNTIME
+          --self-contained true
+          --output .\windows\publish
+          --nologo
+
+      # No .env here on purpose: the key is never shipped. The app reads it from
+      # %LOCALAPPDATA%\OnScreenChat\.env at runtime.
+      - name: Add setup note
+        run: |
+          @"
+          On-Screen Chat - unpackaged, self-contained build.
+
+          1. Put your Gemini key in %LOCALAPPDATA%\OnScreenChat\.env as:
+                 GEMINI_API_KEY=your-key-here
+             (create the folder if it is not there yet)
+          2. Run OnScreenChat.exe
+          3. Toggle the panel with Ctrl+Shift+Space. Quit from the tray icon.
+
+          Unsigned, so SmartScreen warns on first launch: More info -> Run anyway.
+          "@ | Out-File -FilePath .\windows\publish\READ-ME-FIRST.txt -Encoding utf8
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OnScreenChat-${{ inputs.runtime || 'win-x64' }}
+          path: windows/publish/
+          if-no-files-found: error
