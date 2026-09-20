@@ -1,0 +1,8 @@
+# The prompts live in C# raw string literals, which keep whatever line endings
+# the file has on disk. A CRLF checkout silently rewrites every prompt and
+# fails six tests, so source stays LF everywhere — Windows included.
+* text=auto eol=lf
+
+*.png binary
+*.ico binary
+*.icns binary
