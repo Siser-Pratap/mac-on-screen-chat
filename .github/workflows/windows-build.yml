@@ -17,6 +17,7 @@ on:
     branches: [windows-version]
     paths:
       - 'windows/**'
+      - '.gitattributes'
       - '.github/workflows/windows-build.yml'
 
 jobs:
